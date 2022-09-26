@@ -34,9 +34,7 @@ LOCAL_TARGET_NAME := nanomq
 #*********************************************************************************************************
 LOCAL_SRCS :=  \
 src/nanomq/apps/broker.c \
-src/nanomq/aws_bridge.c \
 src/nanomq/bridge.c \
-src/nanomq/db_cli.c \
 src/nanomq/hashmap.c \
 src/nanomq/mqtt_api.c \
 src/nanomq/nanomq.c \
@@ -64,7 +62,7 @@ LOCAL_DSYMBOL :=
 #*********************************************************************************************************
 # Compiler flags
 #*********************************************************************************************************
-LOCAL_CFLAGS := 
+LOCAL_CFLAGS := -DDEBUG
 LOCAL_CXXFLAGS := 
 LOCAL_LINKFLAGS := 
 

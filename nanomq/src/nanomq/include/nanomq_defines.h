@@ -2,7 +2,7 @@
  * nanomq_defines.h
  *
  *  Created on: 2022Äê9ÔÂ23ÈÕ
- *      Author: lzzxh
+ *      Author: alvin
  */
 
 #ifndef SRC_NANOMQ_INCLUDE_NANOMQ_DEFINES_H_
