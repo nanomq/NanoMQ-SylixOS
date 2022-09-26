@@ -2,6 +2,6 @@
 
 Please be aware that this repository requires RealEVO IDE in Windows
 
-1. nanomq-base
-2. nanomq-app
-3. nanomq-so
+1. nanomq
+2. nng
+3. SylixOS-Base
