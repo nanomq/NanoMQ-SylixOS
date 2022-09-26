@@ -1242,8 +1242,6 @@ file_path_parse(int argc, char **argv, conf *config)
     int val = 0;
     int rv = -1;
 
-    printf("arg: [%p]\n", arg);
-
 	while ((rv = nng_opts_parse(argc, argv, cmd_opts, &val, arg, &idx)) ==
 	    0) {
 		switch (val) {
