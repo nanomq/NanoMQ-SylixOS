@@ -14,7 +14,7 @@
 #include <signal.h>
 #endif
 
-#include <nng/mqtt/mqtt_client.h>
+#include "nng/mqtt/mqtt_client.h"
 #include "nng/supplemental/tls/tls.h"
 #include "nng/supplemental/util/options.h"
 #include "nng/supplemental/util/platform.h"
@@ -43,13 +43,6 @@
 #include "webhook_inproc.h"
 #include "nanomq.h"
 
-// #if defined(SUPP_RULE_ENGINE)
-// 	#include <foundationdb/fdb_c.h>
-// 	#include <foundationdb/fdb_c_options.g.h>
-// #endif
-#if defined(SUPP_AWS_BRIDGE)
-	#include "include/aws_bridge.h"
-#endif
 // Parallel is the maximum number of outstanding requests we can handle.
 // This is *NOT* the number of threads in use, but instead represents
 // outstanding work items.  Select a small number to reduce memory size.
@@ -1238,11 +1231,11 @@ int
 file_path_parse(int argc, char **argv, conf *config)
 {
     int idx = 2;
-    char **arg;
-    int val = 0;
-    int rv = -1;
+    char *arg;
+    int   val;
+    int   rv;
 
-	while ((rv = nng_opts_parse(argc, argv, cmd_opts, &val, arg, &idx)) ==
+	while ((rv = nng_opts_parse(argc, argv, cmd_opts, &val, &arg, &idx)) ==
 	    0) {
 		switch (val) {
 		case OPT_HELP:
