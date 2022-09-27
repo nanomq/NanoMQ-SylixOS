@@ -62,9 +62,7 @@ struct rest_work {
 static nng_socket        req_sock;
 static nng_mtx *         job_lock;
 static rest_job *        job_freelist;
-static nng_mtx *         mtx_log;
 static nng_thread *      inproc_thr;
-static FILE *            logfile;
 static conf_http_server *http_server_conf;
 static conf *            global_config;
 static nng_time          boot_time;

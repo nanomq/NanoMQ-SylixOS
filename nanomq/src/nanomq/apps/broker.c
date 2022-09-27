@@ -796,49 +796,6 @@ broker(conf *nanomq_conf)
 	// add the num of other proto
 	uint64_t num_ctx = nanomq_conf->parallel;
 
-#if defined(SUPP_RULE_ENGINE)
-	conf_rule *cr = &nanomq_conf->rule_eng;
-	if (cr->option & RULE_ENG_SDB) {
-		nanomq_client_sqlite(cr, false);
-	}
-
-	if (cr->option & RULE_ENG_MDB) {
-		nanomq_client_mysql(cr, false);
-	}
-
-#if defined(FDB_SUPPORT)
-	if (cr->option & RULE_ENG_FDB) {
-		// RULE_ENGINE_FDB:
-		// RULE_ENGINE_SDB:
-		pthread_t   netThread;
-		fdb_error_t err =
-		    fdb_select_api_version(FDB_API_VERSION);
-		if (err) {
-			log_debug("select API version error: %s",
-			    fdb_get_error(err));
-			exit(1);
-		}
-		FDBDatabase *fdb   = openDatabase(&netThread);
-		nanomq_conf->rule_eng.rdb[1] = (void *) fdb;
-	}
-#endif
-
-	if (cr->option & RULE_ENG_RPB) {
-		for (int i = 0; i < cvector_size(cr->rules); i++) {
-			if (RULE_FORWORD_REPUB == cr->rules[i].forword_type) {
-				int              index = 0;
-				nng_socket *sock  = (nng_socket *) nng_alloc(
-				    sizeof(nng_socket));
-				nano_client(sock, cr->rules[i].repub);
-			}
-
-		}
-	}
-
-
-
-#endif
-
 	// init tree
 	dbtree_create(&db);
 	if (db == NULL) {
@@ -888,16 +845,6 @@ broker(conf *nanomq_conf)
 				bridge_client(node->sock, nanomq_conf, node);
 			}
 		}
-
-#if defined(SUPP_AWS_BRIDGE)
-		for (size_t c = 0; c < nanomq_conf->aws_bridge.count; c++) {
-			conf_bridge_node *node =
-			    nanomq_conf->aws_bridge.nodes[c];
-			if (node->enable) {
-				num_ctx += node->parallel;
-			}
-		}
-#endif
 	}
 
 	struct work **works = nng_zalloc(num_ctx * sizeof(struct work *));
@@ -926,24 +873,6 @@ broker(conf *nanomq_conf)
 				tmp += node->parallel;
 			}
 		}
-
-#if defined(SUPP_AWS_BRIDGE)
-		for (size_t t = 0; t < nanomq_conf->aws_bridge.count; t++) {
-			conf_bridge_node *node =
-			    nanomq_conf->aws_bridge.nodes[t];
-			if (node->enable) {
-				for (i = tmp; i < (tmp + node->parallel);
-				     i++) {
-					works[i] =
-					    proto_work_init(sock, inproc_sock,
-					        sock, PROTO_AWS_BRIDGE, db,
-					        db_ret, nanomq_conf);
-				}
-				tmp += node->parallel;
-				aws_bridge_client(node);
-			}
-		}
-#endif
 	}
 
 	// create http server ctx
@@ -1015,16 +944,6 @@ broker(conf *nanomq_conf)
 #endif
 	for (;;) {
 		if (keepRunning == 0) {
-#if defined(SUPP_RULE_ENGINE)
-
-	#if defined(FDB_SUPPORT)
-			if (nanomq_conf->rule_eng.option & RULE_ENG_FDB) {
-				fdb_database_destroy(
-				    nanomq_conf->rule_eng.rdb[1]);
-				fdb_stop_network();
-			}
-	#endif
-#endif
 			for (size_t i = 0; i < num_ctx; i++) {
 				nng_free(works[i]->pipe_ct,
 				    sizeof(struct pipe_content));
