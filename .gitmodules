@@ -1,0 +1,3 @@
+[submodule "nng"]
+	path = nng
+	url = D:\\Projects\\NanoMQ-SylixOS-WS\\nng
