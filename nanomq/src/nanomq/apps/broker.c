@@ -231,7 +231,7 @@ server_cb(void *arg)
 		}
 		break;
 	case RECV:
-		log_debug("RECV  ^^^^ ctx%d ^^^^\n", work->ctx.id);
+	    log_debug("RECV  ^^^^ ctx%d ^^^^\n", work->ctx.id);
 		if ((rv = nng_aio_result(work->aio)) != 0) {
 			log_warn("RECV nng aio result error: %d", rv);
 			work->state = RECV;
@@ -421,14 +421,16 @@ server_cb(void *arg)
 				break;
 			}
 		} else if (work->flag == CMD_CONNACK) {
-			nng_msg_set_pipe(work->msg, work->pid);
-			// clone for sending connect event notification
-			nng_msg_clone(work->msg);
-			nng_aio_set_msg(work->aio, work->msg);
-			nng_ctx_send(work->ctx, work->aio); // send connack
-
 			uint8_t *body        = nng_msg_body(work->msg);
 			uint8_t  reason_code = *(body + 1);
+			if (work->proto == PROTO_MQTT_BROKER) {
+				// Return CONNACK to broker client
+				nng_msg_set_pipe(work->msg, work->pid);
+				// clone for sending connect event notification
+				nng_msg_clone(work->msg);
+				nng_aio_set_msg(work->aio, work->msg);
+				nng_ctx_send(work->ctx, work->aio);
+			}
 			smsg = nano_msg_notify_connect(work->cparam, reason_code);
 			webhook_entry(work, reason_code);
 			// Set V4/V5 flag for publish notify msg
@@ -810,6 +812,7 @@ broker(conf *nanomq_conf)
 	dbhash_init_pipe_table();
 	dbhash_init_alias_table();
 
+	log_debug("db init finished");
 	/*  Create the socket. */
 	nanomq_conf->db_root = db;
 	sock.id              = 0;
@@ -818,10 +821,12 @@ broker(conf *nanomq_conf)
 	if (rv != 0) {
 		fatal("nng_nmq_tcp0_open", rv);
 	}
+	log_debug("listener init finished");
 
 	nng_socket inproc_sock;
 
 	if (nanomq_conf->http_server.enable || nanomq_conf->bridge_mode) {
+		log_debug("HTTP service initialization");
 		rv = nng_rep0_open(&inproc_sock);
 		if (rv != 0) {
 			fatal("nng_rep0_open", rv);
@@ -831,10 +836,13 @@ broker(conf *nanomq_conf)
 			num_ctx += HTTP_CTX_NUM;
 		}
 	}
+	log_debug("HTTP init finished");
 
 	if (nanomq_conf->web_hook.enable) {
+		log_debug("Webhook service initialization");
 		start_webhook_service(nanomq_conf);
 	}
+	log_debug("webhook init finished");
 	if (nanomq_conf->bridge_mode) {
 		for (size_t t = 0; t < nanomq_conf->bridge.count; t++) {
 			conf_bridge_node *node = nanomq_conf->bridge.nodes[t];
@@ -858,6 +866,7 @@ broker(conf *nanomq_conf)
 	// only create ctx when there is sub topics
 	size_t tmp = nanomq_conf->parallel;
 	if (nanomq_conf->bridge_mode) {
+		log_debug("MQTT bridging service initialization");
 		// iterates all bridge targets
 		for (size_t t = 0; t < nanomq_conf->bridge.count; t++) {
 			conf_bridge_node *node = nanomq_conf->bridge.nodes[t];
@@ -877,6 +886,7 @@ broker(conf *nanomq_conf)
 
 	// create http server ctx
 	if (nanomq_conf->http_server.enable) {
+		log_debug("NanoMQ context initialization");
 		for (i = tmp; i < tmp + HTTP_CTX_NUM; i++) {
 			works[i] = proto_work_init(sock, inproc_sock, sock,
 			    PROTO_HTTP_SERVER, db, db_ret, nanomq_conf);
