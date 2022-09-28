@@ -231,7 +231,7 @@ server_cb(void *arg)
 		}
 		break;
 	case RECV:
-		log_debug("RECV  ^^^^ ctx%d ^^^^\n", work->ctx.id);
+	    log_debug("RECV  ^^^^ ctx%d ^^^^\n", work->ctx.id);
 		if ((rv = nng_aio_result(work->aio)) != 0) {
 			log_warn("RECV nng aio result error: %d", rv);
 			work->state = RECV;
@@ -421,14 +421,16 @@ server_cb(void *arg)
 				break;
 			}
 		} else if (work->flag == CMD_CONNACK) {
-			nng_msg_set_pipe(work->msg, work->pid);
-			// clone for sending connect event notification
-			nng_msg_clone(work->msg);
-			nng_aio_set_msg(work->aio, work->msg);
-			nng_ctx_send(work->ctx, work->aio); // send connack
-
 			uint8_t *body        = nng_msg_body(work->msg);
 			uint8_t  reason_code = *(body + 1);
+			if (work->proto == PROTO_MQTT_BROKER) {
+				// Return CONNACK to broker client
+				nng_msg_set_pipe(work->msg, work->pid);
+				// clone for sending connect event notification
+				nng_msg_clone(work->msg);
+				nng_aio_set_msg(work->aio, work->msg);
+				nng_ctx_send(work->ctx, work->aio);
+			}
 			smsg = nano_msg_notify_connect(work->cparam, reason_code);
 			webhook_entry(work, reason_code);
 			// Set V4/V5 flag for publish notify msg
@@ -796,49 +798,6 @@ broker(conf *nanomq_conf)
 	// add the num of other proto
 	uint64_t num_ctx = nanomq_conf->parallel;
 
-#if defined(SUPP_RULE_ENGINE)
-	conf_rule *cr = &nanomq_conf->rule_eng;
-	if (cr->option & RULE_ENG_SDB) {
-		nanomq_client_sqlite(cr, false);
-	}
-
-	if (cr->option & RULE_ENG_MDB) {
-		nanomq_client_mysql(cr, false);
-	}
-
-#if defined(FDB_SUPPORT)
-	if (cr->option & RULE_ENG_FDB) {
-		// RULE_ENGINE_FDB:
-		// RULE_ENGINE_SDB:
-		pthread_t   netThread;
-		fdb_error_t err =
-		    fdb_select_api_version(FDB_API_VERSION);
-		if (err) {
-			log_debug("select API version error: %s",
-			    fdb_get_error(err));
-			exit(1);
-		}
-		FDBDatabase *fdb   = openDatabase(&netThread);
-		nanomq_conf->rule_eng.rdb[1] = (void *) fdb;
-	}
-#endif
-
-	if (cr->option & RULE_ENG_RPB) {
-		for (int i = 0; i < cvector_size(cr->rules); i++) {
-			if (RULE_FORWORD_REPUB == cr->rules[i].forword_type) {
-				int              index = 0;
-				nng_socket *sock  = (nng_socket *) nng_alloc(
-				    sizeof(nng_socket));
-				nano_client(sock, cr->rules[i].repub);
-			}
-
-		}
-	}
-
-
-
-#endif
-
 	// init tree
 	dbtree_create(&db);
 	if (db == NULL) {
@@ -853,6 +812,7 @@ broker(conf *nanomq_conf)
 	dbhash_init_pipe_table();
 	dbhash_init_alias_table();
 
+	log_debug("db init finished");
 	/*  Create the socket. */
 	nanomq_conf->db_root = db;
 	sock.id              = 0;
@@ -861,10 +821,12 @@ broker(conf *nanomq_conf)
 	if (rv != 0) {
 		fatal("nng_nmq_tcp0_open", rv);
 	}
+	log_debug("listener init finished");
 
 	nng_socket inproc_sock;
 
 	if (nanomq_conf->http_server.enable || nanomq_conf->bridge_mode) {
+		log_debug("HTTP service initialization");
 		rv = nng_rep0_open(&inproc_sock);
 		if (rv != 0) {
 			fatal("nng_rep0_open", rv);
@@ -874,10 +836,13 @@ broker(conf *nanomq_conf)
 			num_ctx += HTTP_CTX_NUM;
 		}
 	}
+	log_debug("HTTP init finished");
 
 	if (nanomq_conf->web_hook.enable) {
+		log_debug("Webhook service initialization");
 		start_webhook_service(nanomq_conf);
 	}
+	log_debug("webhook init finished");
 	if (nanomq_conf->bridge_mode) {
 		for (size_t t = 0; t < nanomq_conf->bridge.count; t++) {
 			conf_bridge_node *node = nanomq_conf->bridge.nodes[t];
@@ -888,16 +853,6 @@ broker(conf *nanomq_conf)
 				bridge_client(node->sock, nanomq_conf, node);
 			}
 		}
-
-#if defined(SUPP_AWS_BRIDGE)
-		for (size_t c = 0; c < nanomq_conf->aws_bridge.count; c++) {
-			conf_bridge_node *node =
-			    nanomq_conf->aws_bridge.nodes[c];
-			if (node->enable) {
-				num_ctx += node->parallel;
-			}
-		}
-#endif
 	}
 
 	struct work **works = nng_zalloc(num_ctx * sizeof(struct work *));
@@ -911,6 +866,7 @@ broker(conf *nanomq_conf)
 	// only create ctx when there is sub topics
 	size_t tmp = nanomq_conf->parallel;
 	if (nanomq_conf->bridge_mode) {
+		log_debug("MQTT bridging service initialization");
 		// iterates all bridge targets
 		for (size_t t = 0; t < nanomq_conf->bridge.count; t++) {
 			conf_bridge_node *node = nanomq_conf->bridge.nodes[t];
@@ -926,28 +882,11 @@ broker(conf *nanomq_conf)
 				tmp += node->parallel;
 			}
 		}
-
-#if defined(SUPP_AWS_BRIDGE)
-		for (size_t t = 0; t < nanomq_conf->aws_bridge.count; t++) {
-			conf_bridge_node *node =
-			    nanomq_conf->aws_bridge.nodes[t];
-			if (node->enable) {
-				for (i = tmp; i < (tmp + node->parallel);
-				     i++) {
-					works[i] =
-					    proto_work_init(sock, inproc_sock,
-					        sock, PROTO_AWS_BRIDGE, db,
-					        db_ret, nanomq_conf);
-				}
-				tmp += node->parallel;
-				aws_bridge_client(node);
-			}
-		}
-#endif
 	}
 
 	// create http server ctx
 	if (nanomq_conf->http_server.enable) {
+		log_debug("NanoMQ context initialization");
 		for (i = tmp; i < tmp + HTTP_CTX_NUM; i++) {
 			works[i] = proto_work_init(sock, inproc_sock, sock,
 			    PROTO_HTTP_SERVER, db, db_ret, nanomq_conf);
@@ -1015,16 +954,6 @@ broker(conf *nanomq_conf)
 #endif
 	for (;;) {
 		if (keepRunning == 0) {
-#if defined(SUPP_RULE_ENGINE)
-
-	#if defined(FDB_SUPPORT)
-			if (nanomq_conf->rule_eng.option & RULE_ENG_FDB) {
-				fdb_database_destroy(
-				    nanomq_conf->rule_eng.rdb[1]);
-				fdb_stop_network();
-			}
-	#endif
-#endif
 			for (size_t i = 0; i < num_ctx; i++) {
 				nng_free(works[i]->pipe_ct,
 				    sizeof(struct pipe_content));
