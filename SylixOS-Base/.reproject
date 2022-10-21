@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="GB2312" standalone="no"?>
+<SylixOSSetting>
+    <BaseSetting Profile="standard" ProjectType="SylixOSBaseProject" RealEvoVer="5.0.1 Professional" TlsVersion="default"/>
+    <OutputSetting>
+        <OutputSetting Name="libsylixos" Path="libsylixos" TreeNode="libsylixos">
+            <OutputPath Name="Output" Path="Release:Debug" TreeNode="Output"/>
+            <OutputPath Name="Debug" Path="Debug" TreeNode="Debug"/>
+            <OutputPath Name="Release" Path="Release" TreeNode="Release"/>
+        </OutputSetting>
+        <OutputSetting Name="libcextern" Path="libcextern" TreeNode="libcextern">
+            <OutputPath Name="Output" Path="Release:Debug" TreeNode="Output"/>
+            <OutputPath Name="Debug" Path="Debug" TreeNode="Debug"/>
+            <OutputPath Name="Release" Path="Release" TreeNode="Release"/>
+        </OutputSetting>
+        <OutputSetting Name="libreadline" Path="libreadline" TreeNode="libreadline">
+            <OutputPath Name="Output" Path="Release:Debug" TreeNode="Output"/>
+            <OutputPath Name="Debug" Path="Debug" TreeNode="Debug"/>
+            <OutputPath Name="Release" Path="Release" TreeNode="Release"/>
+        </OutputSetting>
+        <OutputSetting Name="libsqlite3" Path="libsqlite3" TreeNode="libsqlite3">
+            <OutputPath Name="Output" Path="Release:Debug" TreeNode="Output"/>
+            <OutputPath Name="Debug" Path="Debug" TreeNode="Debug"/>
+            <OutputPath Name="Release" Path="Release" TreeNode="Release"/>
+        </OutputSetting>
+        <OutputSetting Name="pciutils" Path="pciutils" TreeNode="pciutils">
+            <OutputPath Name="Output" Path="Release:Debug" TreeNode="Output"/>
+            <OutputPath Name="Debug" Path="Debug" TreeNode="Debug"/>
+            <OutputPath Name="Release" Path="Release" TreeNode="Release"/>
+        </OutputSetting>
+        <OutputSetting Name="openssl" Path="openssl" TreeNode="openssl">
+            <OutputPath Name="Output" Path="Release:Debug" TreeNode="Output"/>
+            <OutputPath Name="Debug" Path="Debug" TreeNode="Debug"/>
+            <OutputPath Name="Release" Path="Release" TreeNode="Release"/>
+        </OutputSetting>
+        <OutputSetting Name="libgtest" Path="libgtest" TreeNode="libgtest">
+            <OutputPath Name="Output" Path="Release:Debug" TreeNode="Output"/>
+            <OutputPath Name="Debug" Path="Debug" TreeNode="Debug"/>
+            <OutputPath Name="Release" Path="Release" TreeNode="Release"/>
+        </OutputSetting>
+    </OutputSetting>
+    <UploadPath>
+        <PairItem key="$(WORKSPACE_SylixOS-Base)\libsylixos\$(Output)\strip\libvpmpdm.so" value="/lib/libvpmpdm.so"/>
+        <PairItem key="$(WORKSPACE_SylixOS-Base)\libsylixos\$(Output)\strip\xinput.ko" value="/lib/modules/xinput.ko"/>
+        <PairItem key="$(WORKSPACE_SylixOS-Base)\libsylixos\$(Output)\strip\xsiipc.ko" value="/lib/modules/xsiipc.ko"/>
+        <PairItem key="$(WORKSPACE_SylixOS-Base)\libsylixos\$(Output)\strip\xtimer.ko" value="/lib/modules/xtimer.ko"/>
+        <PairItem key="$(WORKSPACE_SylixOS-Base)\libsylixos\$(Output)\strip\env" value="/usr/bin/env"/>
+        <PairItem key="$(WORKSPACE_SylixOS-Base)\libsylixos\$(Output)\strip\kidvpn" value="/sbin/kidvpn"/>
+        <PairItem key="$(WORKSPACE_SylixOS-Base)\libsylixos\$(Output)\strip\libfastlock.so" value="/lib/libfastlock.so"/>
+        <PairItem key="$(WORKSPACE_SylixOS-Base)\libsylixos\$(Output)\strip\libmbedcrypto.so" value="/lib/libmbedcrypto.so"/>
+        <PairItem key="$(WORKSPACE_SylixOS-Base)\libsylixos\$(Output)\strip\libmbedtls.so" value="/lib/libmbedtls.so"/>
+        <PairItem key="$(WORKSPACE_SylixOS-Base)\libsylixos\$(Output)\strip\libmbedx509.so" value="/lib/libmbedx509.so"/>
+        <PairItem key="$(WORKSPACE_SylixOS-Base)\libsylixos\$(Output)\strip\libstdc++.so" value="/lib/libstdc++.so"/>
+        <PairItem key="$(WORKSPACE_SylixOS-Base)\libsylixos\$(Output)\strip\ls" value="/bin/ls"/>
+        <PairItem key="$(WORKSPACE_SylixOS-Base)\libsylixos\$(Output)\strip\dd" value="/usr/bin/dd"/>
+        <PairItem key="$(WORKSPACE_SylixOS-Base)\libsylixos\$(Output)\strip\demangle" value="/usr/bin/demangle"/>
+        <PairItem key="$(WORKSPACE_SylixOS-Base)\libcextern\$(Output)\strip\libcextern.so" value="/lib/libcextern.so"/>
+        <PairItem key="$(WORKSPACE_SylixOS-Base)\libreadline\$(Output)\strip\libreadline.so" value="/lib/libreadline.so"/>
+        <PairItem key="$(WORKSPACE_SylixOS-Base)\libsqlite3\$(Output)\strip\libsqlite3.so" value="/lib/libsqlite3.so"/>
+        <PairItem key="$(WORKSPACE_SylixOS-Base)\libsqlite3\$(Output)\strip\sqlite3" value="/bin/sqlite3"/>
+        <PairItem key="$(WORKSPACE_SylixOS-Base)\pciutils\$(Output)\strip\lspci" value="/bin/lspci"/>
+        <PairItem key="$(WORKSPACE_SylixOS-Base)\pciutils\$(Output)\strip\setpci" value="/bin/setpci"/>
+        <PairItem key="$(WORKSPACE_SylixOS-Base)\pciutils\$(Output)\strip\pci.ids" value="/etc/pci/pci.ids"/>
+        <PairItem key="$(WORKSPACE_SylixOS-Base)\openssl\$(Output)\strip\openssl" value="/usr/bin/openssl"/>
+        <PairItem key="$(WORKSPACE_SylixOS-Base)\openssl\$(Output)\strip\libssl.so" value="/lib/libssl.so"/>
+        <PairItem key="$(WORKSPACE_SylixOS-Base)\openssl\$(Output)\strip\libcrypto.so" value="/lib/libcrypto.so"/>
+        <PairItem key="$(WORKSPACE_SylixOS-Base)\openssl\$(Output)\strip\ct_log_list.cnf" value="/usr/local/ssl/ct_log_list.cnf"/>
+        <PairItem key="$(WORKSPACE_SylixOS-Base)\openssl\$(Output)\strip\openssl.cnf" value="/usr/local/ssl/openssl.cnf"/>
+        <PairItem key="$(WORKSPACE_SylixOS-Base)\openssl\$(Output)\strip\dasync.so" value="/usr/local/lib/engines-1.1/dasync.so"/>
+        <PairItem key="$(WORKSPACE_SylixOS-Base)\openssl\$(Output)\strip\capi.so" value="/usr/local/lib/engines-1.1/capi.so"/>
+        <PairItem key="$(WORKSPACE_SylixOS-Base)\openssl\$(Output)\strip\ossltest.so" value="/usr/local/lib/engines-1.1/ossltest.so"/>
+        <PairItem key="$(WORKSPACE_SylixOS-Base)\openssl\$(Output)\strip\padlock.so" value="/usr/local/lib/engines-1.1/padlock.so"/>
+        <PairItem key="$(WORKSPACE_SylixOS-Base)\libgtest\$(Output)\strip\libgtest.so" value="/lib/libgtest.so"/>
+        <PairItem key="$(WORKSPACE_SylixOS-Base)\libgtest\$(Output)\strip\libgmock.so" value="/lib/libgmock.so"/>
+        <PairItem key="$(WORKSPACE_SylixOS-Base)\libgtest\$(Output)\strip\libgtestx.so" value="/lib/libgtestx.so"/>
+        <PairItem key="$(WORKSPACE_SylixOS-Base)\libgtest\$(Output)\strip\libgflags.so" value="/lib/libgflags.so"/>
+    </UploadPath>
+    <BuildSetting CoustomCfgMakefile="false" NeedReBuild="false" NotScanSourceFile="false"/>
+    <DeviceSetting DevName="192.168.7.31" WorkDir="/lib"/>
+    <ExtDevNames/>
+</SylixOSSetting>

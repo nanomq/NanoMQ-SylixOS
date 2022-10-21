@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="GB2312" standalone="no"?>
+<SylixOSSetting>
+    <BaseSetting Profile="standard" ProjectType="SylixOSAppProject" RealEvoVer="5.0.1 Professional" TlsVersion="default"/>
+    <OutputSetting>
+        <OutputPath Name="Output" Path="Release:Debug" TreeNode="Output"/>
+        <OutputPath Name="Debug" Path="Debug" TreeNode="Debug"/>
+        <OutputPath Name="Release" Path="Release" TreeNode="Release"/>
+    </OutputSetting>
+    <BuildSetting CoustomCfgMakefile="false" NeedReBuild="false" NotScanSourceFile="false"/>
+    <UploadPath>
+        <PairItem key="$(WORKSPACE_nanomq)/$(Output)/strip/nanomq" value="/apps/nanomq/nanomq"/>
+        <PairItem key="$(WORKSPACE_nanomq)/etc/nanomq.conf" value="/apps/nanomq/etc/nanomq.conf"/>
+    </UploadPath>
+    <DeviceSetting DevName="192.168.7.31" WorkDir="/apps/nanomq"/>
+    <ExtDevNames/>
+</SylixOSSetting>
