@@ -9,8 +9,8 @@
     <BuildSetting CoustomCfgMakefile="false" NeedReBuild="false" NotScanSourceFile="false"/>
     <UploadPath>
         <PairItem key="$(WORKSPACE_nanomq)/$(Output)/strip/nanomq" value="/apps/nanomq/nanomq"/>
-        <PairItem key="$(WORKSPACE_nanomq)/etc/nanomq.conf" value="/apps/nanomq/etc/nanomq.conf"/>
+        <PairItem key="$(WORKSPACE_nanomq)/etc/nanomq.conf" value="/etc/nanomq.conf"/>
     </UploadPath>
-    <DeviceSetting DevName="192.168.7.31" WorkDir="/apps/nanomq"/>
+    <DeviceSetting DevName="172.168.0.47" WorkDir="/apps/nanomq"/>
     <ExtDevNames/>
 </SylixOSSetting>

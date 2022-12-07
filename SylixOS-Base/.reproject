@@ -75,6 +75,6 @@
         <PairItem key="$(WORKSPACE_SylixOS-Base)\libgtest\$(Output)\strip\libgflags.so" value="/lib/libgflags.so"/>
     </UploadPath>
     <BuildSetting CoustomCfgMakefile="false" NeedReBuild="false" NotScanSourceFile="false"/>
-    <DeviceSetting DevName="192.168.7.31" WorkDir="/lib"/>
+    <DeviceSetting DevName="172.168.0.47" WorkDir="/lib"/>
     <ExtDevNames/>
 </SylixOSSetting>
