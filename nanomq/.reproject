@@ -10,7 +10,8 @@
     <UploadPath>
         <PairItem key="$(WORKSPACE_nanomq)/$(Output)/strip/nanomq" value="/apps/nanomq/nanomq"/>
         <PairItem key="$(WORKSPACE_nanomq)/etc/nanomq.conf" value="/etc/nanomq.conf"/>
+        <PairItem key="$(WORKSPACE_nanomq)/etc/certs" value="/etc/certs"/>
     </UploadPath>
-    <DeviceSetting DevName="172.168.0.47" WorkDir="/apps/nanomq"/>
+    <DeviceSetting DevName="192.168.7.37" WorkDir="/apps/nanomq"/>
     <ExtDevNames/>
 </SylixOSSetting>
