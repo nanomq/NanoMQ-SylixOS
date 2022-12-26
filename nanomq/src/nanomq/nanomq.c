@@ -66,7 +66,7 @@ print_version(void)
 static void
 print_help(void)
 {
-	printf("\nUsage: nanomq { start | stop | restart } [--help]\n");
+	printf("\nUsage: nanomq { start } [--help]\n");
 	print_version();
 }
 
