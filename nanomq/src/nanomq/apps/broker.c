@@ -976,7 +976,7 @@ broker(conf *nanomq_conf)
 void
 print_usage(void)
 {
-	printf("Usage: nanomq { { start | restart [--url <url>] "
+	printf("Usage: nanomq { { start [--url <url>] "
 	       "[--conf <path>] [-t, --tq_thread <num>]\n                     "
 	       "[-T, -max_tq_thread <num>] [-n, --parallel <num>] \n                     "
 	       "[-D, --qos_duration <num>] [--http] "
@@ -984,7 +984,7 @@ print_usage(void)
 	       "[--cacert <path>] [-E, --cert <path>] "
 	       "[--key <path>] \n                     "
 	       "[--keypass <password>] [--verify] [--fail] }\n            "
-	       "         | stop }\n\n");
+	       "         }\n\n");
 	printf("Options: \n");
 	printf("  --url <url>                Specify listener's url: "
 	       "'nmq-tcp://host:port', \r\n                             "
@@ -1348,13 +1348,6 @@ broker_start(int argc, char **argv)
 
 	conf *nanomq_conf;
 
-	if (!status_check(&pid)) {
-		fprintf(stderr,
-		    "One NanoMQ instance is still running, a new instance "
-		    "won't be started until the other one is stopped.\n");
-		exit(EXIT_FAILURE);
-	}
-
 	if ((nanomq_conf = nng_zalloc(sizeof(conf))) == NULL) {
 		fprintf(stderr,
 		    "Cannot allocate storge for configuration, quit\n");
@@ -1418,64 +1411,20 @@ broker_start(int argc, char **argv)
 	exit(rc == 0 ? EXIT_SUCCESS : EXIT_FAILURE);
 }
 
-#ifndef NANO_PLATFORM_WINDOWS
-
-int
-broker_stop(int argc, char **argv)
-{
-	int pid = 0;
-
-	if (argc > 2) {
-		print_usage();
-		exit(EXIT_FAILURE);
-	}
-
-	if (!(status_check(&pid))) {
-		kill(pid, SIGTERM);
-	} else {
-		fprintf(stderr, "There is no running NanoMQ instance.\n");
-		exit(EXIT_FAILURE);
-	}
-	fprintf(stderr, "NanoMQ stopped.\n");
-	exit(EXIT_SUCCESS);
-}
 
 int
 broker_restart(int argc, char **argv)
 {
-	int pid = 0;
-
-	if (!(status_check(&pid))) {
-		kill(pid, SIGTERM);
-		while (!status_check(&pid)) {
-			kill(pid, SIGKILL);
-		}
-		fprintf(stderr, "Previous NanoMQ instance stopped.\n");
-	} else {
-		fprintf(stderr, "There is no running NanoMQ instance.\n");
-	}
-
-	return broker_start(argc, argv);
-}
-
-#else
-
-int
-broker_restart(int argc, char **argv)
-{
-	log_error("Not support on Windows\n");
+	printf("Not support on SylixOS\n");
 	exit(EXIT_SUCCESS);
 }
-
 
 int
 broker_stop(int argc, char **argv)
 {
-	log_error("Not support on Windows\n");
+    printf("Not support on SylixOS\n");
 	exit(EXIT_SUCCESS);
 }
-
-#endif
 
 int
 broker_dflt(int argc, char **argv)
