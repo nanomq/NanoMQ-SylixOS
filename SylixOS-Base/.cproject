@@ -13,6 +13,7 @@
 	</storageModule>
 	<storageModule moduleId="org.eclipse.cdt.core.LanguageSettingsProviders"/>
 	<storageModule moduleId="org.eclipse.cdt.make.core.buildtargets"/>
+	<storageModule moduleId="refreshScope"/>
 	<storageModule moduleId="org.eclipse.cdt.core.pathentry">
 		<pathentry kind="mac" name="__GNUC__" path="" value="1"/>
 		<pathentry kind="mac" name="SYLIXOS" path="" value=""/>
@@ -31,11 +32,5 @@
 		<pathentry excluding="obj|dep" kind="out" path="libreadline/Release"/>
 		<pathentry excluding="obj|dep" kind="out" path="libsqlite3/Debug"/>
 		<pathentry excluding="obj|dep" kind="out" path="libsqlite3/Release"/>
-		<pathentry excluding="obj|dep" kind="out" path="pciutils/Debug"/>
-		<pathentry excluding="obj|dep" kind="out" path="pciutils/Release"/>
-		<pathentry excluding="obj|dep" kind="out" path="openssl/Debug"/>
-		<pathentry excluding="obj|dep" kind="out" path="openssl/Release"/>
-		<pathentry excluding="obj|dep" kind="out" path="libgtest/Debug"/>
-		<pathentry excluding="obj|dep" kind="out" path="libgtest/Release"/>
 	</storageModule>
 </cproject>
