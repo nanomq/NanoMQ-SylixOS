@@ -184,6 +184,7 @@ encode_common_mqtt_msg(
 }
 
 static nng_mtx *log_file_mtx = NULL;
+static nng_mtx *log_stdout_mtx = NULL;
 
 static int
 log_file_init(conf_log *log)
@@ -215,7 +216,10 @@ log_init(conf_log *log)
 	log_set_level(log->level);
 
 	if (0 != (log->type & LOG_TO_CONSOLE)) {
-		log_add_console(log->level, NULL);
+		if (0 != (rv = nng_mtx_alloc(&log_stdout_mtx))) {
+			return rv;
+		}
+		log_add_console(log->level, log_stdout_mtx);
 	}
 
 	if (0 != (log->type & LOG_TO_FILE)) {
@@ -241,6 +245,9 @@ log_fini(conf_log *log)
 	if (0 != (log->type & LOG_TO_FILE)) {
 		nng_mtx_free(log_file_mtx);
 	}
+    if (0 != (log->type & LOG_TO_CONSOLE)) {
+        nng_mtx_free(log_stdout_mtx);
+    }
 
 #if defined(SUPP_SYSLOG)
 	if (0 != (log->type & LOG_TO_SYSLOG)) {
