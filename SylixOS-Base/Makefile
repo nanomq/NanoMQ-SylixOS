@@ -2,10 +2,7 @@ COMPONENTS :=  \
 libsylixos \
 libcextern \
 libreadline \
-libsqlite3 \
-pciutils \
-openssl \
-libgtest
+libsqlite3
 
 all: $(COMPONENTS)
 	@for target in $(COMPONENTS); do make -C $$target all; done
