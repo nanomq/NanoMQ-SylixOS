@@ -138,8 +138,8 @@ int keepRunning = 1;
 void
 intHandler(int dummy)
 {
+    keepRunning = 0;
     fprintf(stderr, "\nBroker exit(%d).\n", dummy);
-	keepRunning = 0;
 }
 #endif
 

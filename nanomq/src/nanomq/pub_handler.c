@@ -1096,21 +1096,21 @@ handle_pub(nano_work *work, struct pipe_content *pipe_ct, uint8_t proto)
                 dbhash_insert_atpair(work->pid.id, pdata->p_value.u16, topic);
 			}
 		} else {
-			if (pdata) {
-				const char *tp = dbhash_find_atpair(
-				    work->pid.id, pdata->p_value.u16);
+            if (pdata) {
+                const char *tp = dbhash_find_atpair(work->pid.id,
+                        pdata->p_value.u16);
                 if (tp) {
-                    topic = work->pub_packet->var_header.publish.topic_name.body =
+                    topic =
+                            work->pub_packet->var_header.publish.topic_name.body =
                                     nng_strdup(tp);
                     len = work->pub_packet->var_header.publish.topic_name.len =
                             strlen(tp);
-				} else {
-					log_error("could not find "
-					          "topic by alias: %d",
-					    pdata->p_value.u16);
-					return result;
-				}
-			}
+                } else {
+                    log_error("could not find "
+                            "topic by alias: %d", pdata->p_value.u16);
+                    return result;
+                }
+            }
 		}
 	}
 
@@ -1430,12 +1430,12 @@ decode_pub_message(nano_work *work, uint8_t proto)
 		return PROTOCOL_ERROR;
 	}
 
-	switch (pub_packet->fixed_header.packet_type) {
-	case PUBLISH:
-		// variable header
-		// topic length
-		NNI_GET16(msg_body + pos,
-		    pub_packet->var_header.publish.topic_name.len);
+    switch (pub_packet->fixed_header.packet_type) {
+    case PUBLISH:
+        // variable header
+        // topic length
+        NNI_GET16(msg_body + pos,
+                pub_packet->var_header.publish.topic_name.len);
         pub_packet->var_header.publish.topic_name.body = (char*) copyn_utf8_str(
                 msg_body, &pos, (int*) &len, msg_len);
         if (len >= 0)
@@ -1446,115 +1446,100 @@ decode_pub_message(nano_work *work, uint8_t proto)
             return PROTOCOL_ERROR;
         }
 
+        if (pub_packet->var_header.publish.topic_name.len > 0&&
+        pub_packet->var_header.publish.topic_name.body != NULL) {
+            if (strchr(pub_packet->var_header.publish.topic_name.body,
+                    '+') != NULL ||
+                    strchr(
+                            pub_packet->var_header.publish.topic_name.body,
+                            '#') != NULL) {
 
-		if (pub_packet->var_header.publish.topic_name.len > 0 &&
-		    pub_packet->var_header.publish.topic_name.body != NULL) {
-			if (strchr(
-			        pub_packet->var_header.publish.topic_name.body,
-			        '+') != NULL ||
-			    strchr(
-			        pub_packet->var_header.publish.topic_name.body,
-			        '#') != NULL) {
+                // protocol error
+                log_error("protocol error in topic:[%s], len: [%d]",
+                        pub_packet->var_header.publish.topic_name.body,
+                        pub_packet->var_header.publish.topic_name.len);
 
-				// protocol error
-				log_error(
-				    "protocol error in topic:[%s], len: [%d]",
-				    pub_packet->var_header.publish.topic_name
-				        .body,
-				    pub_packet->var_header.publish.topic_name
-				        .len);
+                return PROTOCOL_ERROR;
+            }
+        }
 
-				return PROTOCOL_ERROR;
-			}
-		}
+        // TODO if topic_len = 0 && mqtt_version = 5.0, search topic
+        // alias from nano_db
 
-		// TODO if topic_len = 0 && mqtt_version = 5.0, search topic
-		// alias from nano_db
+        log_debug("topic: [%.*s], len:[%d], qos: %d",
+                pub_packet->var_header.publish.topic_name.len,
+                pub_packet->var_header.publish.topic_name.body,
+                pub_packet->var_header.publish.topic_name.len,
+                pub_packet->fixed_header.qos);
 
-		log_debug("topic: [%.*s], len:[%d], qos: %d",
-		    pub_packet->var_header.publish.topic_name.len,
-		    pub_packet->var_header.publish.topic_name.body,
-		    pub_packet->var_header.publish.topic_name.len,
-		    pub_packet->fixed_header.qos);
+        if (pub_packet->fixed_header.qos > 0) {
+            NNI_GET16(msg_body + pos, pub_packet->var_header.publish.packet_id);
+            log_debug("identifier: [%d]",
+                    pub_packet->var_header.publish.packet_id);
+            pos += 2;
+        }
+        used_pos = pos;
 
-		if (pub_packet->fixed_header.qos > 0) {
-			NNI_GET16(msg_body + pos,
-			    pub_packet->var_header.publish.packet_id);
-			log_debug("identifier: [%d]",
-			    pub_packet->var_header.publish.packet_id);
-			pos += 2;
-		}
-		used_pos = pos;
+        if (MQTT_PROTOCOL_VERSION_v5 == proto) {
+            pub_packet->var_header.publish.properties = decode_properties(msg,
+                    &pos, &pub_packet->var_header.publish.prop_len,
+                    false);
+            log_debug("property len: %d",
+                    pub_packet->var_header.publish.prop_len);
 
-		if (MQTT_PROTOCOL_VERSION_v5 == proto) {
-			pub_packet->var_header.publish.properties =
-			    decode_properties(msg, &pos,
-			        &pub_packet->var_header.publish.prop_len,
-			        false);
-			log_debug("property len: %d",
-			    pub_packet->var_header.publish.prop_len);
+            if (pub_packet->var_header.publish.properties) {
+                if (check_properties(pub_packet->var_header.publish.properties)
+                        != 0||
+                        property_get_value(pub_packet->var_header
+                                .publish.properties,
+                                SUBSCRIPTION_IDENTIFIER) != NULL) {
+                    return PROTOCOL_ERROR;
+                }
+            }
+        }
 
-			if (pub_packet->var_header.publish.properties) {
-				if (check_properties(
-				        pub_packet->var_header.publish
-				            .properties) != 0 ||
-				    property_get_value(pub_packet->var_header
-				                           .publish.properties,
-				        SUBSCRIPTION_IDENTIFIER) != NULL) {
-					return PROTOCOL_ERROR;
-				}
-			}
-		}
+        if (pos > msg_len) {
+            log_debug("buffer-overflow: pos = %u, msg_len = %lu", pos, msg_len);
+            return PROTOCOL_ERROR;
+        }
 
-		if (pos > msg_len) {
-			log_debug("buffer-overflow: pos = %u, msg_len = %lu",
-			    pos, msg_len);
-			return PROTOCOL_ERROR;
-		}
+        used_pos = pos;
+        log_debug("used pos: [%d]", used_pos);
+        // payload
+        pub_packet->payload.len = (uint32_t) (msg_len - (size_t) used_pos);
 
-		used_pos = pos;
-		log_debug("used pos: [%d]", used_pos);
-		// payload
-		pub_packet->payload.len =
-		    (uint32_t) (msg_len - (size_t) used_pos);
+        if (pub_packet->payload.len > 0) {
+            pub_packet->payload.data = nng_zalloc(pub_packet->payload.len + 1);
+            memcpy(pub_packet->payload.data, (uint8_t*) (msg_body + pos),
+                    pub_packet->payload.len);
+            log_debug("payload: [%s], len = %u", pub_packet->payload.data,
+                    pub_packet->payload.len);
+        }
+        break;
 
-		if (pub_packet->payload.len > 0) {
-			pub_packet->payload.data =
-			    nng_zalloc(pub_packet->payload.len + 1);
-			memcpy(pub_packet->payload.data,
-			    (uint8_t *) (msg_body + pos),
-			    pub_packet->payload.len);
-			log_debug("payload: [%s], len = %u",
-			    pub_packet->payload.data, pub_packet->payload.len);
-		}
-		break;
+    case PUBACK:
+    case PUBREC:
+    case PUBREL:
+    case PUBCOMP:
+        // here could not be reached
+        NNI_GET16(msg_body, pub_packet->var_header.pub_arrc.packet_id);
+        if (MQTT_PROTOCOL_VERSION_v5 == proto) {
+            pos += 2;
+            pub_packet->var_header.pub_arrc.reason_code = *(msg_body + pos);
+            pos++;
+            pub_packet->var_header.pub_arrc.properties = decode_properties(msg,
+                    &pos, &pub_packet->var_header.pub_arrc.prop_len,
+                    false);
+            if (check_properties(pub_packet->var_header.pub_arrc.properties)
+                    != SUCCESS) {
+                return PROTOCOL_ERROR;
+            }
+        }
+        break;
 
-	case PUBACK:
-	case PUBREC:
-	case PUBREL:
-	case PUBCOMP:
-		// here could not be reached
-		NNI_GET16(msg_body, pub_packet->var_header.pub_arrc.packet_id);
-		if (MQTT_PROTOCOL_VERSION_v5 == proto) {
-			pos += 2;
-			pub_packet->var_header.pub_arrc.reason_code =
-			    *(msg_body + pos);
-			pos++;
-			pub_packet->var_header.pub_arrc.properties =
-			    decode_properties(msg, &pos,
-			        &pub_packet->var_header.pub_arrc.prop_len,
-			        false);
-			if (check_properties(
-			        pub_packet->var_header.pub_arrc.properties) !=
-			    SUCCESS) {
-				return PROTOCOL_ERROR;
-			}
-		}
-		break;
-
-	default:
-		break;
-	}
+    default:
+        break;
+    }
 	return SUCCESS;
 }
 
