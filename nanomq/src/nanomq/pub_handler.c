@@ -1082,27 +1082,28 @@ handle_pub(nano_work *work, struct pipe_content *pipe_ct, uint8_t proto)
 		return result;
 	}
 
+    topic = work->pub_packet->var_header.publish.topic_name.body;
+    uint32_t len = work->pub_packet->var_header.publish.topic_name.len;
+
 	// deal with topic alias
 	if (proto == MQTT_PROTOCOL_VERSION_v5) {
 		property_data *pdata = property_get_value(
 		    work->pub_packet->var_header.publish.properties,
 		    TOPIC_ALIAS);
-		if (work->pub_packet->var_header.publish.topic_name.len > 0) {
-			if (pdata) {
-				dbhash_insert_atpair(work->pid.id,
-				    pdata->p_value.u16,
-				    work->pub_packet->var_header.publish
-				        .topic_name.body);
+		log_trace("len: %d, topic: %s", len, topic);
+		if (len > 0 && topic != NULL) {
+            if (pdata) {
+                dbhash_insert_atpair(work->pid.id, pdata->p_value.u16, topic);
 			}
 		} else {
 			if (pdata) {
 				const char *tp = dbhash_find_atpair(
 				    work->pid.id, pdata->p_value.u16);
-				if (tp) {
-					work->pub_packet->var_header.publish
-					    .topic_name.body = nng_strdup(tp);
-					work->pub_packet->var_header.publish
-					    .topic_name.len = strlen(tp);
+                if (tp) {
+                    topic = work->pub_packet->var_header.publish.topic_name.body =
+                                    nng_strdup(tp);
+                    len = work->pub_packet->var_header.publish.topic_name.len =
+                            strlen(tp);
 				} else {
 					log_error("could not find "
 					          "topic by alias: %d",
@@ -1113,7 +1114,7 @@ handle_pub(nano_work *work, struct pipe_content *pipe_ct, uint8_t proto)
 		}
 	}
 
-	topic = work->pub_packet->var_header.publish.topic_name.body;
+//	topic = work->pub_packet->var_header.publish.topic_name.body;
 	if (topic == NULL) {
 		log_error("Topic is NULL");
 		return result;
@@ -1435,8 +1436,16 @@ decode_pub_message(nano_work *work, uint8_t proto)
 		// topic length
 		NNI_GET16(msg_body + pos,
 		    pub_packet->var_header.publish.topic_name.len);
-		pub_packet->var_header.publish.topic_name.body =
-		    (char *) copy_utf8_str(msg_body, &pos, &len);
+        pub_packet->var_header.publish.topic_name.body = (char*) copyn_utf8_str(
+                msg_body, &pos, (int*) &len, msg_len);
+        if (len >= 0)
+            // topic could be NULL here (topic alias)
+            pub_packet->var_header.publish.topic_name.len = len;
+        else {
+            log_warn("Invalid msg: Protocol error!");
+            return PROTOCOL_ERROR;
+        }
+
 
 		if (pub_packet->var_header.publish.topic_name.len > 0 &&
 		    pub_packet->var_header.publish.topic_name.body != NULL) {
@@ -1462,9 +1471,10 @@ decode_pub_message(nano_work *work, uint8_t proto)
 		// TODO if topic_len = 0 && mqtt_version = 5.0, search topic
 		// alias from nano_db
 
-		log_debug("topic: [%.*s], qos: %d",
+		log_debug("topic: [%.*s], len:[%d], qos: %d",
 		    pub_packet->var_header.publish.topic_name.len,
 		    pub_packet->var_header.publish.topic_name.body,
+		    pub_packet->var_header.publish.topic_name.len,
 		    pub_packet->fixed_header.qos);
 
 		if (pub_packet->fixed_header.qos > 0) {

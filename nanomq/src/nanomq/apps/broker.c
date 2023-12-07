@@ -138,8 +138,8 @@ int keepRunning = 1;
 void
 intHandler(int dummy)
 {
+    fprintf(stderr, "\nBroker exit(%d).\n", dummy);
 	keepRunning = 0;
-	fprintf(stderr, "\nBroker exit(0).\n");
 }
 #endif
 
@@ -950,7 +950,9 @@ broker(conf *nanomq_conf)
 
 #if (defined DEBUG) && (defined ASAN)
 #if !(defined NANO_PLATFORM_WINDOWS)
-	signal(SIGINT, intHandler);
+//	signal(SIGINT, intHandler);
+    signal(SIGKILL, intHandler);
+//    signal(SIGTERM, intHandler);
 #endif
 	for (;;) {
 		if (keepRunning == 0) {
