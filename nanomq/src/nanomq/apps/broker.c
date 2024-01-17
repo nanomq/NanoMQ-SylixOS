@@ -893,8 +893,10 @@ broker(conf *nanomq_conf)
 		}
 	}
 
-	if ((rv = nano_listen(sock, nanomq_conf->url, NULL, 0, nanomq_conf)) != 0) {
-		fatal("nng_listen", rv);
+	if (nanomq_conf->enable) {
+		if ((rv = nano_listen(sock, nanomq_conf->url, NULL, 0, nanomq_conf)) != 0) {
+			fatal("nng_listen", rv);
+		}
 	}
 
 	// read from command line & config file
