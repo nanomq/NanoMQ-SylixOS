@@ -143,6 +143,40 @@ intHandler(int dummy)
 }
 #endif
 
+#if !defined(NANO_PLATFORM_WINDOWS)
+static const int all_signals[] = {
+#ifdef SIGHUP
+    SIGHUP,
+#endif
+#ifdef SIGQUIT
+    SIGQUIT,
+#endif
+#ifdef SIGTRAP
+    SIGTRAP,
+#endif
+#ifdef SIGIO
+    SIGIO,
+#endif
+    SIGABRT,
+    SIGFPE,
+    SIGILL,
+    SIGINT,
+    SIGSEGV,
+    SIGTERM
+};
+
+void sig_handler(int signum)
+{
+    log_error("signal signumber: %d received!\n", signum);
+
+    if (signum == SIGINT || signum == SIGABRT || signum == SIGSEGV) {
+        exit(EXIT_FAILURE);
+    }
+    if (signum == SIGILL || signum == SIGTERM)
+        exit(EXIT_SUCCESS);
+}
+#endif
+
 void
 fatal(const char *func, int rv)
 {
@@ -971,6 +1005,22 @@ broker(conf *nanomq_conf)
 		nng_msleep(6000);
 	}
 #else
+#if !(defined NANO_PLATFORM_WINDOWS)
+    struct sigaction  act;
+    i = 0;
+
+    memset(&act, 0, sizeof act);
+    sigemptyset(&act.sa_mask);
+    act.sa_handler = sig_handler;
+    act.sa_flags = 0;
+
+    do {
+        if (sigaction(all_signals[i], &act, NULL)) {
+            log_error("Cannot install signal %d handler: %s.", all_signals[i], strerror(errno));
+        }
+    } while (all_signals[i++] != SIGTERM);
+    log_error("signal catcher is ready");
+#endif
 	for (;;) {
 		nng_msleep(3600000); // neither pause() nor sleep() portable
 	}
