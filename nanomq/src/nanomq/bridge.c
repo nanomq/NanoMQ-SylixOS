@@ -21,7 +21,8 @@ static int
 apply_sqlite_config(
     nng_socket *sock, conf_bridge_node *config, const char *db_name)
 {
-#if defined(NNG_SUPP_SQLITE)
+#if 0
+//#if defined(NNG_SUPP_SQLITE)
 	int rv;
 	// create sqlite option
 	nng_mqtt_sqlite_option *opt;
