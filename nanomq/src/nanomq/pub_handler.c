@@ -88,15 +88,17 @@ static void
 foreach_client(
     uint32_t *cli_ctx_list, nano_work *pub_work, struct pipe_content *pipe_ct)
 {
-	bool     equal = false;
 	uint32_t pids;
 	int      ctx_list_len;
 
-	// Dont using msg info buf, Just for Cheat Compiler
-	mqtt_msg_info *msg_info, msg_info_buf;
-	cvector(mqtt_msg_info) msg_infos = pipe_ct->msg_infos;
-
 	ctx_list_len = cvector_size(cli_ctx_list);
+
+	// Dont using msg info buf, Just for Cheat Compiler
+	mqtt_msg_info *msg_info     = NULL;
+	mqtt_msg_info  msg_info_buf = { 0 };
+
+	cvector(mqtt_msg_info) msg_infos = pipe_ct->msg_infos;
+	cvector_grow(msg_infos, ctx_list_len);
 
 	for (int i = 0; i < ctx_list_len; i++) {
 		pids = cli_ctx_list[i];
